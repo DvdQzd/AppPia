@@ -30,28 +30,39 @@ export class LoginPage implements OnInit {
   }
 
   async ingresar() {
+
+    let alert;
     const formData = this.formularioLogin.value;
 
-    const { user, contrasena } = (
+    const userFromDB: Usuario = (
       await this.usuarioService.obtenerListadoUsuarios()
     ).usuarios
       .find((usuario: Usuario) => usuario.user === formData.usuario);
 
-    //TIENE QUE EJECUTARSE UN CICLO
-    if (user == formData.usuario && contrasena == formData.contrasena) {
-      console.log('Ingresado');
-      localStorage.setItem('ingresado', 'true');
-      this.navCtrl.navigateRoot('inicio');
+    if (!userFromDB) {
+      alert = await this.alertController.create({
+        header: 'Oops!',
+        message: 'Usuario no existe',
+        buttons: ['Aceptar']
+      });
+      await alert.present();
+      return false;
     }
-    else {
-      const alert = await this.alertController.create({
+
+    if (userFromDB && userFromDB.contrasena !== formData.contrasena) {
+      alert = await this.alertController.create({
         header: 'Datos incorrectos',
         message: 'Los datos que ingresaste son incorrectos.',
         buttons: ['Aceptar']
       });
-
       await alert.present();
+      return false;
     }
+
+    console.log('Ingresado');
+    localStorage.setItem('ingresado', 'true');
+    this.navCtrl.navigateRoot('inicio');
+
   }
 
 }
